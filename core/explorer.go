@@ -18,26 +18,18 @@ type Explorer struct {
 func NewExplorer(client *client.CupClient, workerCount int) *Explorer {
 	e := Explorer{client: client, workerCount: workerCount}
 
-	e.reportChan = make(chan *models.Report)
-	e.pointChan = make(chan *models.Area)
+	e.reportChan = make(chan *models.Report, PlayFieldX*PlayFieldY)
+	e.pointChan = make(chan *models.Area, PlayFieldX*PlayFieldY)
 
 	return &e
 }
 
 func (e *Explorer) Init() {
-	// todo
-	zone := &models.Area{
-		PosX:  0,
-		PosY:  0,
-		SizeX: PlayFieldX,
-		SizeY: PlayFieldY,
-	}
-
-	for x := zone.PosX; x <= zone.PosX+zone.SizeX; x++ {
-		for y := zone.PosY; x <= zone.PosY+zone.SizeY; y++ {
+	for x := 0; x < PlayFieldX; x++ {
+		for y := 0; y < PlayFieldY; y++ {
 			e.pointChan <- &models.Area{
-				PosX:  x,
-				PosY:  y,
+				PosX:  uint16(x),
+				PosY:  uint16(y),
 				SizeX: 1,
 				SizeY: 1,
 			}

@@ -12,14 +12,14 @@ type Game struct {
 }
 
 func New(client *client.CupClient) *Game {
-	e := NewExplorer(client, 100)
+	e := NewExplorer(client, 10)
 
 	return &Game{client, e}
 }
 
 func (g *Game) Start() error {
+	g.explorer.Init()
 	g.explorer.Start()
-	go g.explorer.Init()
 
 	// TODO: License pool
 	license, err := g.GetLicense()
@@ -32,12 +32,12 @@ func (g *Game) Start() error {
 		// TODO: goroutinize it
 		// TODO: write to chan task
 		left := *report.Amount
-		for depth := uint8(1); depth < PlayFieldDepth; depth++ {
+		for depth := uint8(1); depth <= PlayFieldDepth; depth++ {
 			if license.DigUsed >= license.DigAllowed {
 				data, err := g.GetLicense()
 				if err != nil {
 					logger.Error.Println(err)
-					continue
+					break
 				}
 
 				*license = *data
@@ -61,20 +61,6 @@ func (g *Game) Start() error {
 	}
 
 	return nil
-}
-
-func (g Game) Explore(x, y uint16) (*models.Amount, error) {
-	result, err := g.client.ExploreArea(&models.Area{
-		PosX:  x,
-		PosY:  y,
-		SizeX: 1,
-		SizeY: 1,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return result.Amount, nil
 }
 
 func (g Game) CashTreasures(list models.TreasureList) error {
