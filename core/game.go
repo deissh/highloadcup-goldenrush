@@ -30,6 +30,13 @@ func New(client *client.CupClient) *Game {
 }
 
 func (g Game) Start() error {
+	// TODO: License pool
+	license, err := g.GetLicense()
+	if err != nil {
+		logger.Error.Println(err)
+		return err
+	}
+
 	for x := uint16(0); x < PlayFieldX; x++ {
 		for y := uint16(0); y < PlayFieldY; y++ {
 			amount, err := g.Explore(x, y)
@@ -43,20 +50,23 @@ func (g Game) Start() error {
 				continue
 			}
 
-			// TODO: License pool
-			license, err := g.GetLicense()
-			if err != nil {
-				logger.Error.Println(err)
-				continue
-			}
-
 			// TODO: goroutinize it
 			// TODO: write to chan task
 			for depth := uint8(1); depth <= PlayFieldDepth; depth++ {
+				if license.DigUsed >= license.DigAllowed {
+					license, err = g.GetLicense()
+					if err != nil {
+						logger.Error.Println(err)
+						continue
+					}
+				}
+
 				treasures, err := g.Dig(x, y, depth, license.ID)
+				license.DigUsed++
+
 				if err != nil {
 					logger.Error.Println(err)
-					break
+					continue
 				}
 
 				if err = g.CashTreasures(treasures); err != nil {
@@ -101,6 +111,8 @@ func (g Game) CashTreasures(list models.TreasureList) error {
 		if err != nil {
 			logger.Warn.Println(id, " not cashed")
 		}
+
+		logger.Info.Println(id, " cashed")
 	}
 
 	return nil
