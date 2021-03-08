@@ -5,6 +5,8 @@ import (
 	"github.com/deissh/highloadcup-goldenrush/client"
 	"github.com/deissh/highloadcup-goldenrush/core"
 	"github.com/deissh/highloadcup-goldenrush/logger"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"time"
 )
@@ -23,8 +25,9 @@ func WaitReady(apiClient *client.CupClient) {
 func main() {
 	logger.Info.Println("Starting")
 
-	host := fmt.Sprintf("%s:%d", os.Getenv("ADDRESS"), 8000)
+	go http.ListenAndServe("localhost:2233", nil)
 
+	host := fmt.Sprintf("%s:%d", os.Getenv("ADDRESS"), 8000)
 	api := client.New(&client.TransportConfig{
 		Host: host,
 	})
@@ -33,7 +36,6 @@ func main() {
 	WaitReady(api)
 
 	game := core.New(api)
-	defer game.Stop()
 
 	if err := game.Start(); err != nil {
 		logger.Error.Println(err)

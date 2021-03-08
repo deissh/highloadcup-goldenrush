@@ -1,35 +1,26 @@
 package core
 
 import (
-	"context"
 	"github.com/deissh/highloadcup-goldenrush/client"
 	"github.com/deissh/highloadcup-goldenrush/logger"
 	"github.com/deissh/highloadcup-goldenrush/models"
 )
 
-const (
-	PlayFieldX     = 3500
-	PlayFieldY     = 3500
-	PlayFieldDepth = 10
-)
-
 type Game struct {
-	ctx       context.Context
-	ctxCancel context.CancelFunc
-	client    *client.CupClient
+	client   *client.CupClient
+	explorer *Explorer
 }
 
 func New(client *client.CupClient) *Game {
-	ctx, cancel := context.WithCancel(context.Background())
+	e := NewExplorer(client, 100)
 
-	return &Game{
-		ctx,
-		cancel,
-		client,
-	}
+	return &Game{client, e}
 }
 
 func (g *Game) Start() error {
+	g.explorer.Start()
+	go g.explorer.Init()
+
 	// TODO: License pool
 	license, err := g.GetLicense()
 	if err != nil {
@@ -37,56 +28,37 @@ func (g *Game) Start() error {
 		return err
 	}
 
-	for x := uint16(0); x < PlayFieldX; x++ {
-		for y := uint16(0); y < PlayFieldY; y++ {
-			amount, err := g.Explore(x, y)
-			if err != nil {
-				logger.Error.Println(err)
-				continue
-			}
-
-			left := int64(*amount)
-			if left == 0 {
-				continue
-			}
-
-			// TODO: goroutinize it
-			// TODO: write to chan task
-			for depth := uint8(1); depth <= PlayFieldDepth; depth++ {
-				if license.DigUsed >= license.DigAllowed {
-					data, err := g.GetLicense()
-					if err != nil {
-						logger.Error.Println(err)
-						continue
-					}
-
-					*license = *data
-				}
-
-				treasures, err := g.Dig(x, y, depth, license.ID)
-				license.DigUsed++
-
+	for report := range g.explorer.reportChan {
+		// TODO: goroutinize it
+		// TODO: write to chan task
+		left := *report.Amount
+		for depth := uint8(1); depth < PlayFieldDepth; depth++ {
+			if license.DigUsed >= license.DigAllowed {
+				data, err := g.GetLicense()
 				if err != nil {
 					logger.Error.Println(err)
 					continue
 				}
 
-				_ = g.CashTreasures(treasures)
+				*license = *data
+			}
 
-				left--
-				if left <= 0 {
-					break
-				}
+			treasures, err := g.Dig(report.Area.PosX, report.Area.PosY, depth, license.ID)
+			license.DigUsed++
+
+			if err != nil {
+				logger.Error.Println(err)
+				continue
+			}
+
+			_ = g.CashTreasures(treasures)
+
+			left--
+			if left <= 0 {
+				break
 			}
 		}
 	}
-
-	return nil
-}
-
-func (g Game) Stop() error {
-	defer g.ctxCancel()
-	logger.Info.Println("Stopping context and all goroutines")
 
 	return nil
 }
