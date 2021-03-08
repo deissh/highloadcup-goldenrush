@@ -12,7 +12,7 @@ type Game struct {
 }
 
 func New(client *client.CupClient) *Game {
-	e := NewExplorer(client, 10)
+	e := NewExplorer(client, 100)
 
 	return &Game{client, e}
 }

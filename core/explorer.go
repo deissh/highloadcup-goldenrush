@@ -13,6 +13,8 @@ type Explorer struct {
 
 	reportChan chan *models.Report
 	pointChan  chan *models.Area
+
+	pool sync.Pool
 }
 
 func NewExplorer(client *client.CupClient, workerCount int) *Explorer {
@@ -21,18 +23,24 @@ func NewExplorer(client *client.CupClient, workerCount int) *Explorer {
 	e.reportChan = make(chan *models.Report, PlayFieldX*PlayFieldY)
 	e.pointChan = make(chan *models.Area, PlayFieldX*PlayFieldY)
 
+	e.pool = sync.Pool{
+		New: func() interface{} {
+			return &models.Area{SizeX: 1, SizeY: 1}
+		},
+	}
+
 	return &e
 }
 
 func (e *Explorer) Init() {
 	for x := 0; x < PlayFieldX; x++ {
 		for y := 0; y < PlayFieldY; y++ {
-			e.pointChan <- &models.Area{
-				PosX:  uint16(x),
-				PosY:  uint16(y),
-				SizeX: 1,
-				SizeY: 1,
-			}
+			area := e.pool.Get().(*models.Area)
+
+			area.PosX = uint16(x)
+			area.PosY = uint16(y)
+
+			e.pointChan <- area
 		}
 	}
 }
@@ -51,6 +59,8 @@ func (e *Explorer) explore(wg *sync.WaitGroup) {
 
 	for point := range e.pointChan {
 		report, err := e.client.ExploreArea(point)
+		e.pool.Put(point)
+
 		if err != nil {
 			logger.Error.Println(err)
 			continue
