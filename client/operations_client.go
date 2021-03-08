@@ -23,7 +23,7 @@ type client struct {
 
 // Service is the interface for client methods
 type Service interface {
-	Cash(id string) (*[]uint64, error)
+	Cash(id string) (*[]uint32, error)
 
 	Dig(params *models.Dig) (*models.TreasureList, error)
 
@@ -38,11 +38,13 @@ type Service interface {
 	ListLicenses() (*[]models.License, error)
 }
 
-func (c client) Cash(id string) (*[]uint64, error) {
+func (c client) Cash(id string) (*[]uint32, error) {
 	req := c.transport.Request()
 	req.Path("/cash")
 	req.Method("POST")
-	req.Use(body.String(id))
+	req.SetHeader("accept", "application/json")
+	req.SetHeader("Content-Type", "application/json")
+	req.BodyString("\"" + id + "\"")
 
 	res, err := req.Send()
 	if err != nil {
@@ -52,10 +54,10 @@ func (c client) Cash(id string) (*[]uint64, error) {
 	if !res.Ok {
 		var errRes models.Error
 		res.JSON(&errRes)
-		return nil, errors.New(errRes.Message)
+		return nil, errors.New("req err: " + errRes.Message)
 	}
 
-	data := make([]uint64, 0)
+	data := make([]uint32, 0)
 	if err = res.JSON(&data); err != nil {
 		return nil, err
 	}
@@ -77,7 +79,7 @@ func (c client) Dig(params *models.Dig) (*models.TreasureList, error) {
 	if !res.Ok {
 		var errRes models.Error
 		res.JSON(&errRes)
-		return nil, errors.New(errRes.Message)
+		return nil, errors.New("req err: " + errRes.Message)
 	}
 
 	var data models.TreasureList
@@ -102,7 +104,7 @@ func (c client) ExploreArea(params *models.Area) (*models.Report, error) {
 	if !res.Ok {
 		var errRes models.Error
 		res.JSON(&errRes)
-		return nil, errors.New(errRes.Message)
+		return nil, errors.New("req err: " + errRes.Message)
 	}
 
 	var data models.Report
@@ -126,7 +128,7 @@ func (c client) GetBalance() (*models.Balance, error) {
 	if !res.Ok {
 		var errRes models.Error
 		res.JSON(&errRes)
-		return nil, errors.New(errRes.Message)
+		return nil, errors.New("req err: " + errRes.Message)
 	}
 
 	var data models.Balance
@@ -174,7 +176,7 @@ func (c client) IssueLicense(coins []uint64) (*models.License, error) {
 	if !res.Ok {
 		var errRes models.Error
 		res.JSON(&errRes)
-		return nil, errors.New(errRes.Message)
+		return nil, errors.New("req err: " + errRes.Message)
 	}
 
 	var data models.License
@@ -198,7 +200,7 @@ func (c client) ListLicenses() (*[]models.License, error) {
 	if !res.Ok {
 		var errRes models.Error
 		res.JSON(&errRes)
-		return nil, errors.New(errRes.Message)
+		return nil, errors.New("req err: " + errRes.Message)
 	}
 
 	data := make([]models.License, 0)

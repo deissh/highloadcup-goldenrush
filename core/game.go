@@ -29,7 +29,7 @@ func New(client *client.CupClient) *Game {
 	}
 }
 
-func (g Game) Start() error {
+func (g *Game) Start() error {
 	// TODO: License pool
 	license, err := g.GetLicense()
 	if err != nil {
@@ -40,7 +40,7 @@ func (g Game) Start() error {
 	for x := uint16(0); x < PlayFieldX; x++ {
 		for y := uint16(0); y < PlayFieldY; y++ {
 			amount, err := g.Explore(x, y)
-			if err != nil || amount == nil {
+			if err != nil {
 				logger.Error.Println(err)
 				continue
 			}
@@ -54,11 +54,13 @@ func (g Game) Start() error {
 			// TODO: write to chan task
 			for depth := uint8(1); depth <= PlayFieldDepth; depth++ {
 				if license.DigUsed >= license.DigAllowed {
-					license, err = g.GetLicense()
+					data, err := g.GetLicense()
 					if err != nil {
 						logger.Error.Println(err)
 						continue
 					}
+
+					*license = *data
 				}
 
 				treasures, err := g.Dig(x, y, depth, license.ID)
@@ -69,9 +71,7 @@ func (g Game) Start() error {
 					continue
 				}
 
-				if err = g.CashTreasures(treasures); err != nil {
-					logger.Error.Println(err)
-				}
+				_ = g.CashTreasures(treasures)
 
 				left--
 				if left <= 0 {
@@ -107,12 +107,13 @@ func (g Game) Explore(x, y uint16) (*models.Amount, error) {
 
 func (g Game) CashTreasures(list models.TreasureList) error {
 	for _, id := range list {
-		_, err := g.client.Cash(id)
+		data, err := g.client.Cash(id)
 		if err != nil {
 			logger.Warn.Println(id, " not cashed")
+			return err
 		}
 
-		logger.Info.Println(id, " cashed")
+		logger.Info.Println(id, " cashed with", data)
 	}
 
 	return nil
