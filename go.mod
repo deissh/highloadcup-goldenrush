@@ -3,12 +3,9 @@ module github.com/deissh/highloadcup-goldenrush
 go 1.15
 
 require (
-	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
-	github.com/go-openapi/errors v0.20.0
-	github.com/go-openapi/runtime v0.19.26
-	github.com/go-openapi/strfmt v0.20.0
-	github.com/go-openapi/swag v0.19.14
-	github.com/go-openapi/validate v0.20.2
-	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32 // indirect
 	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110 // indirect
+	gopkg.in/eapache/go-resiliency.v1 v1.2.0 // indirect
+	gopkg.in/h2non/gentleman-retry.v2 v2.0.1
+	gopkg.in/h2non/gentleman.v2 v2.0.5
 )

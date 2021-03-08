@@ -9,9 +9,9 @@ import (
 	"time"
 )
 
-func WaitReady(apiClient *client.HighLoadCup2021) {
+func WaitReady(apiClient *client.CupClient) {
 	for {
-		_, err := apiClient.Operations.HealthCheck(nil)
+		err := apiClient.HealthCheck()
 		if err == nil {
 			break
 		}
@@ -23,8 +23,10 @@ func WaitReady(apiClient *client.HighLoadCup2021) {
 func main() {
 	logger.Info.Println("Starting")
 
-	api := client.NewHTTPClientWithConfig(nil, &client.TransportConfig{
-		Host: fmt.Sprintf("%s:%d", os.Getenv("ADDRESS"), 8000),
+	host := fmt.Sprintf("%s:%d", os.Getenv("ADDRESS"), 8000)
+
+	api := client.New(&client.TransportConfig{
+		Host: host,
 	})
 
 	logger.Info.Println("Wait server")
