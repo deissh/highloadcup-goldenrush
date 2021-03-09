@@ -4,6 +4,7 @@ import (
 	"github.com/deissh/highloadcup-goldenrush/client"
 	"github.com/deissh/highloadcup-goldenrush/logger"
 	"github.com/deissh/highloadcup-goldenrush/models"
+	"go.uber.org/ratelimit"
 	"sync"
 )
 
@@ -25,7 +26,7 @@ func NewExplorer(client *client.CupClient, workerCount int) *Explorer {
 
 	e.pool = sync.Pool{
 		New: func() interface{} {
-			return &models.Area{SizeX: 1, SizeY: 1}
+			return &models.Area{PosX: 0, PosY: 0, SizeX: 1, SizeY: 1}
 		},
 	}
 
@@ -47,17 +48,20 @@ func (e *Explorer) Init() {
 
 func (e *Explorer) Start() {
 	wg := &sync.WaitGroup{}
+	rl := ratelimit.New(1000)
 
 	wg.Add(e.workerCount)
 	for i := 0; i < e.workerCount; i++ {
-		go e.explore(wg)
+		go e.explore(wg, rl)
 	}
 }
 
-func (e *Explorer) explore(wg *sync.WaitGroup) {
+func (e *Explorer) explore(wg *sync.WaitGroup, rl ratelimit.Limiter) {
 	defer wg.Done()
 
 	for point := range e.pointChan {
+		rl.Take()
+
 		report, err := e.client.ExploreArea(point)
 		e.pool.Put(point)
 
