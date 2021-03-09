@@ -70,7 +70,7 @@ func (e *Explorer) explore(wg *sync.WaitGroup, rl ratelimit.Limiter) {
 			continue
 		}
 
-		if *report.Amount == 0 {
+		if report.Amount == 0 {
 			continue
 		}
 		e.reportChan <- report

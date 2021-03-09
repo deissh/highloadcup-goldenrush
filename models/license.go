@@ -5,11 +5,11 @@ type License struct {
 
 	// dig allowed
 	// Required: true
-	DigAllowed Amount `json:"digAllowed"`
+	DigAllowed uint16 `json:"digAllowed"`
 
 	// dig used
 	// Required: true
-	DigUsed Amount `json:"digUsed"`
+	DigUsed uint16 `json:"digUsed"`
 
 	// id
 	ID uint64 `json:"id"`

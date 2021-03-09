@@ -5,7 +5,7 @@ type Report struct {
 
 	// amount
 	// Required: true
-	Amount *Amount `json:"amount"`
+	Amount uint64 `json:"amount"`
 
 	// area
 	// Required: true

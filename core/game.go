@@ -31,7 +31,7 @@ func (g *Game) Start() error {
 	for report := range g.explorer.reportChan {
 		// TODO: goroutinize it
 		// TODO: write to chan task
-		left := *report.Amount
+		left := report.Amount
 		for depth := uint8(1); depth <= PlayFieldDepth; depth++ {
 			if license.DigUsed >= license.DigAllowed {
 				data, err := g.GetLicense()
@@ -47,13 +47,12 @@ func (g *Game) Start() error {
 			license.DigUsed++
 
 			if err != nil {
-				logger.Error.Println(err)
 				continue
 			}
 
 			_ = g.CashTreasures(treasures)
 
-			left--
+			left -= uint64(len(treasures))
 			if left <= 0 {
 				break
 			}
