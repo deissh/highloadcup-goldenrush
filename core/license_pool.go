@@ -62,6 +62,8 @@ func (l *LicensePool) Start() {
 	for i := 1; i <= l.workerCount; i++ {
 		go l.issueLicense(wg)
 	}
+
+	wg.Wait()
 }
 
 func (l *LicensePool) issueLicense(wg *sync.WaitGroup) {

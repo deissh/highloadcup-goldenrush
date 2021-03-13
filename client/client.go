@@ -15,7 +15,7 @@ func New(cfg *TransportConfig) *CupClient {
 	cli.Service = newService(
 		&fasthttp.Client{
 			MaxIdemponentCallAttempts: 3,
-			RetryIf: func(req *fasthttp.Request) bool { return true },
+			RetryIf:                   func(req *fasthttp.Request) bool { return true },
 		},
 		cfg.BaseUrl,
 	)

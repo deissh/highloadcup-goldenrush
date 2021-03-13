@@ -38,13 +38,15 @@ func (w *Wallet) Start() {
 	for i := 1; i <= w.workerCount; i++ {
 		go w.cashier(wg)
 	}
+
+	wg.Wait()
 }
 
 func (w *Wallet) cashier(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for {
-		treasure := <- w.treasuresChan
+		treasure := <-w.treasuresChan
 
 		err := w.client.Cash(treasure, nil)
 		if err != nil {

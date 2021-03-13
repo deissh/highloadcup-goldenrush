@@ -56,6 +56,8 @@ func (e *Explorer) Start() {
 	for i := 1; i <= e.workerCount; i++ {
 		go e.explore(wg, rl)
 	}
+
+	wg.Wait()
 }
 
 func (e *Explorer) explore(wg *sync.WaitGroup, rl ratelimit.Limiter) {

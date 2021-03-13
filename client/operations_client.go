@@ -57,7 +57,9 @@ func (c client) Cash(id string, target *[]uint) error {
 		return errors.New("not ok")
 	}
 
-	if target == nil { return nil }
+	if target == nil {
+		return nil
+	}
 	if err = json.Unmarshal(resp.Body(), target); err != nil {
 		logger.Error.Println("unmarshal err: ", err)
 		return err
