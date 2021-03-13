@@ -51,7 +51,7 @@ func (e *Explorer) Start() {
 	rl := ratelimit.New(1000)
 
 	wg.Add(e.workerCount)
-	for i := 0; i < e.workerCount; i++ {
+	for i := 1; i <= e.workerCount; i++ {
 		go e.explore(wg, rl)
 	}
 }

@@ -7,45 +7,34 @@ import (
 )
 
 type Game struct {
-	client   *client.CupClient
-	explorer *Explorer
+	client *client.CupClient
+
+	explorer    *Explorer
+	licensePool *LicensePool
 }
 
 func New(client *client.CupClient) *Game {
 	e := NewExplorer(client, 100)
+	l := NewLicensePool(client, 1)
 
-	return &Game{client, e}
+	return &Game{client, e, l}
 }
 
 func (g *Game) Start() error {
 	g.explorer.Init()
 	g.explorer.Start()
 
-	// TODO: License pool
-	license, err := g.GetLicense()
-	if err != nil {
-		logger.Error.Println(err)
-		return err
-	}
+	g.licensePool.Init()
+	g.licensePool.Start()
 
 	for report := range g.explorer.reportChan {
 		// TODO: goroutinize it
 		// TODO: write to chan task
 		left := report.Amount
 		for depth := uint8(1); depth <= PlayFieldDepth; depth++ {
-			if license.DigUsed >= license.DigAllowed {
-				data, err := g.GetLicense()
-				if err != nil {
-					logger.Error.Println(err)
-					break
-				}
+			lic := g.licensePool.GetLicense()
 
-				*license = *data
-			}
-
-			treasures, err := g.Dig(report.Area.PosX, report.Area.PosY, depth, license.ID)
-			license.DigUsed++
-
+			treasures, err := g.Dig(report.Area.PosX, report.Area.PosY, depth, lic.ID)
 			if err != nil {
 				continue
 			}
@@ -74,16 +63,6 @@ func (g Game) CashTreasures(list models.TreasureList) error {
 	}
 
 	return nil
-}
-
-func (g Game) GetLicense() (*models.License, error) {
-	// todo: получение платной лицензии
-	result, err := g.client.IssueLicense([]uint64{})
-	if err != nil {
-		return nil, err
-	}
-
-	return result, err
 }
 
 func (g Game) Dig(x, y uint16, depth uint8, license uint64) (models.TreasureList, error) {
