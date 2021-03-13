@@ -50,6 +50,8 @@ func (e *Explorer) Start() {
 	wg := &sync.WaitGroup{}
 	rl := ratelimit.New(1000)
 
+	e.Init()
+
 	wg.Add(e.workerCount)
 	for i := 1; i <= e.workerCount; i++ {
 		go e.explore(wg, rl)

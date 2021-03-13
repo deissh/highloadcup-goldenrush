@@ -2,7 +2,6 @@ package core
 
 import (
 	"github.com/deissh/highloadcup-goldenrush/client"
-	"github.com/deissh/highloadcup-goldenrush/logger"
 	"github.com/deissh/highloadcup-goldenrush/models"
 )
 
@@ -11,21 +10,21 @@ type Game struct {
 
 	explorer    *Explorer
 	licensePool *LicensePool
+	wallet *Wallet
 }
 
 func New(client *client.CupClient) *Game {
 	e := NewExplorer(client, 100)
-	l := NewLicensePool(client, 1)
+	l := NewLicensePool(client, 5)
+	w := NewWallet(client, 5)
 
-	return &Game{client, e, l}
+	return &Game{client, e, l, w}
 }
 
 func (g *Game) Start() error {
-	g.explorer.Init()
 	g.explorer.Start()
-
-	g.licensePool.Init()
 	g.licensePool.Start()
+	g.wallet.Start()
 
 	for report := range g.explorer.reportChan {
 		// TODO: goroutinize it
@@ -39,27 +38,13 @@ func (g *Game) Start() error {
 				continue
 			}
 
-			_ = g.CashTreasures(treasures)
+			g.wallet.CashTreasures(treasures)
 
 			left -= uint64(len(treasures))
 			if left <= 0 {
 				break
 			}
 		}
-	}
-
-	return nil
-}
-
-func (g Game) CashTreasures(list []string) error {
-	for _, id := range list {
-		err := g.client.Cash(id, nil)
-		if err != nil {
-			logger.Warn.Println(id, " not cashed")
-			return err
-		}
-
-		logger.Info.Println(id, " cashed")
 	}
 
 	return nil

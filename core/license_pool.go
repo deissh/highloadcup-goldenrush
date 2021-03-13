@@ -56,6 +56,8 @@ func (l *LicensePool) Init() {
 func (l *LicensePool) Start() {
 	wg := &sync.WaitGroup{}
 
+	l.Init()
+
 	wg.Add(l.workerCount)
 	for i := 1; i <= l.workerCount; i++ {
 		go l.issueLicense(wg)
