@@ -66,17 +66,14 @@ func (l *LicensePool) issueLicense(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for {
-		<- l.issueChan
+		<-l.issueChan
 
-		data, err := l.client.IssueLicense([]uint64{})
+		lic := l.pool.Get().(*models.License)
+
+		err := l.client.IssueLicense([]uint64{}, lic)
 		if err != nil {
 			continue
 		}
-
-		lic := l.pool.Get().(*models.License)
-		lic.ID = data.ID
-		lic.DigAllowed = data.DigAllowed
-		lic.DigUsed = data.DigUsed
 
 		l.licenseChan <- lic
 	}

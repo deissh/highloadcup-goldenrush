@@ -27,9 +27,9 @@ func main() {
 
 	go http.ListenAndServe("localhost:2233", nil)
 
-	host := fmt.Sprintf("%s:%d", os.Getenv("ADDRESS"), 8000)
+	host := fmt.Sprintf("http://%s:%d", os.Getenv("ADDRESS"), 8000)
 	api := client.New(&client.TransportConfig{
-		Host: host,
+		BaseUrl: host,
 	})
 
 	logger.Info.Println("Wait server")

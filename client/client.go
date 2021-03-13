@@ -1,8 +1,7 @@
 package client
 
 import (
-	"gopkg.in/h2non/gentleman-retry.v2"
-	"gopkg.in/h2non/gentleman.v2"
+	"github.com/valyala/fasthttp"
 )
 
 type CupClient struct {
@@ -14,10 +13,11 @@ type CupClient struct {
 func New(cfg *TransportConfig) *CupClient {
 	cli := CupClient{}
 	cli.Service = newService(
-		gentleman.
-			New().
-			BaseURL(cfg.Host).
-			Use(retry.New(retry.ConstantBackoff)),
+		&fasthttp.Client{
+			MaxIdemponentCallAttempts: 3,
+			RetryIf: func(req *fasthttp.Request) bool { return true },
+		},
+		cfg.BaseUrl,
 	)
 
 	return &cli
@@ -26,12 +26,12 @@ func New(cfg *TransportConfig) *CupClient {
 // TransportConfig contains the transport related info,
 // found in the meta section of the spec file.
 type TransportConfig struct {
-	Host string
+	BaseUrl string
 }
 
 // WithHost overrides the default host,
 // provided by the meta section of the spec file.
 func (cfg *TransportConfig) WithHost(host string) *TransportConfig {
-	cfg.Host = host
+	cfg.BaseUrl = host
 	return cfg
 }

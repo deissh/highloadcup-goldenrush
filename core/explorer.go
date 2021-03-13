@@ -62,7 +62,9 @@ func (e *Explorer) explore(wg *sync.WaitGroup, rl ratelimit.Limiter) {
 	for point := range e.pointChan {
 		rl.Take()
 
-		report, err := e.client.ExploreArea(point)
+		var report models.Report
+
+		err := e.client.ExploreArea(point, &report)
 		e.pool.Put(point)
 
 		if err != nil {
@@ -73,6 +75,8 @@ func (e *Explorer) explore(wg *sync.WaitGroup, rl ratelimit.Limiter) {
 		if report.Amount == 0 {
 			continue
 		}
-		e.reportChan <- report
+
+		// todo: pool
+		e.reportChan <- &report
 	}
 }

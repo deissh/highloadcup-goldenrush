@@ -51,30 +51,32 @@ func (g *Game) Start() error {
 	return nil
 }
 
-func (g Game) CashTreasures(list models.TreasureList) error {
+func (g Game) CashTreasures(list []string) error {
 	for _, id := range list {
-		data, err := g.client.Cash(id)
+		err := g.client.Cash(id, nil)
 		if err != nil {
 			logger.Warn.Println(id, " not cashed")
 			return err
 		}
 
-		logger.Info.Println(id, " cashed with", data)
+		logger.Info.Println(id, " cashed")
 	}
 
 	return nil
 }
 
-func (g Game) Dig(x, y uint16, depth uint8, license uint64) (models.TreasureList, error) {
-	result, err := g.client.Dig(&models.Dig{
+func (g Game) Dig(x, y uint16, depth uint8, license uint64) ([]string, error) {
+	var data []string
+
+	err := g.client.Dig(&models.Dig{
 		Depth:     depth,
 		LicenseID: license,
 		PosX:      x,
 		PosY:      y,
-	})
+	}, &data)
 	if err != nil {
 		return nil, err
 	}
 
-	return *result, nil
+	return data, nil
 }
