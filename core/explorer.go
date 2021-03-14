@@ -2,8 +2,8 @@ package core
 
 import (
 	"github.com/deissh/highloadcup-goldenrush/client"
-	"github.com/deissh/highloadcup-goldenrush/logger"
 	"github.com/deissh/highloadcup-goldenrush/models"
+	"log"
 	"sync"
 )
 
@@ -78,7 +78,7 @@ func (e *Explorer) explore(wg *sync.WaitGroup) {
 		e.pointPool.Put(point)
 
 		if err != nil {
-			logger.Error.Println(err)
+			log.Println(err)
 			continue
 		}
 

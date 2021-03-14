@@ -3,6 +3,7 @@ package core
 import (
 	"github.com/deissh/highloadcup-goldenrush/client"
 	"github.com/deissh/highloadcup-goldenrush/models"
+	"log"
 	"sync"
 )
 
@@ -13,6 +14,23 @@ type LicensePool struct {
 	licenseChan chan *models.License
 	issueChan   chan struct{}
 	pool        sync.Pool
+
+	metrics LicensePoolMetrics
+}
+
+type LicensePoolMetrics struct {
+	sync.Mutex
+
+	FreeLicenses uint32
+	PaidLicenses uint32
+	FreeLicensesIssued uint32
+	PaidLicensesIssued uint32
+}
+
+func (l *LicensePoolMetrics) Print() {
+	log.Println("*** LICENSE POOL REPORT ***")
+	log.Println("Free licenses", l.FreeLicenses, "total", l.FreeLicensesIssued)
+	log.Println("Paid licenses", l.PaidLicenses, "total", l.FreeLicensesIssued)
 }
 
 func NewLicensePool(client *client.CupClient, workerCount int) *LicensePool {
@@ -30,28 +48,29 @@ func NewLicensePool(client *client.CupClient, workerCount int) *LicensePool {
 }
 
 func (l *LicensePool) GetLicense() *models.License {
-	license := <-l.licenseChan
+	select {
+	case license := <- l.licenseChan: {
+		if license.DigUsed == license.DigAllowed {
+			// remove old license and request new
+			l.pool.Put(license)
+			l.issueChan <- struct{}{}
 
-	if license.DigUsed == license.DigAllowed {
-		// remove old license and request new
-		l.pool.Put(license)
-		l.issueChan <- struct{}{}
+			return l.GetLicense()
+		}
 
-		return l.GetLicense()
+		license.DigUsed += 1
+		l.licenseChan <- license
+
+		return license
 	}
-
-	license.DigUsed += 1
-	l.licenseChan <- license
-
-	return license
-}
-
-func (l *LicensePool) Init() {
-	// request first MaxLicenses licenses
-	for i := 0; i < MaxLicenses; i++ {
+	default:
 		l.issueChan <- struct{}{}
 	}
+
+	return l.GetLicense()
 }
+
+func (l *LicensePool) Init() {}
 
 func (l *LicensePool) Start() {
 	wg := &sync.WaitGroup{}
@@ -80,5 +99,14 @@ func (l *LicensePool) issueLicense(wg *sync.WaitGroup) {
 		}
 
 		l.licenseChan <- lic
+
+		if IsDebug {
+			l.metrics.Lock()
+			l.metrics.FreeLicenses = uint32(len(l.licenseChan))
+			l.metrics.PaidLicenses = uint32(len(l.licenseChan))
+			l.metrics.FreeLicensesIssued += 1
+			l.metrics.PaidLicensesIssued += 1
+			l.metrics.Unlock()
+		}
 	}
 }

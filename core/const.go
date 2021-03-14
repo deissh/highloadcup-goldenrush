@@ -7,3 +7,5 @@ const (
 
 	MaxLicenses = 10
 )
+
+var IsDebug = false

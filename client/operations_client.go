@@ -3,9 +3,9 @@ package client
 import (
 	"encoding/json"
 	"errors"
-	"github.com/deissh/highloadcup-goldenrush/logger"
 	"github.com/deissh/highloadcup-goldenrush/models"
 	"github.com/valyala/fasthttp"
+	"log"
 )
 
 // New creates a new operations API client.
@@ -61,7 +61,7 @@ func (c client) Cash(id string, target *[]uint) error {
 		return nil
 	}
 	if err = json.Unmarshal(resp.Body(), target); err != nil {
-		logger.Error.Println("unmarshal err: ", err)
+		log.Println("unmarshal err: ", err)
 		return err
 	}
 
@@ -94,7 +94,7 @@ func (c client) Dig(params *models.Dig, target *[]string) error {
 	}
 
 	if err = json.Unmarshal(resp.Body(), target); err != nil {
-		logger.Error.Println("unmarshal err: ", err)
+		log.Println("unmarshal err: ", err)
 		return err
 	}
 
@@ -123,7 +123,7 @@ func (c client) ExploreArea(params *models.Area, target *models.Report) error {
 	}
 
 	if err = json.Unmarshal(resp.Body(), target); err != nil {
-		logger.Error.Println("unmarshal err: ", err)
+		log.Println("unmarshal err: ", err)
 		return err
 	}
 
@@ -146,7 +146,7 @@ func (c client) GetBalance(target *models.Balance) error {
 	}
 
 	if err := json.Unmarshal(resp.Body(), target); err != nil {
-		logger.Error.Println("unmarshal err: ", err)
+		log.Println("unmarshal err: ", err)
 		return err
 	}
 
@@ -197,7 +197,7 @@ func (c client) IssueLicense(coins []uint64, target *models.License) error {
 	}
 
 	if err = json.Unmarshal(resp.Body(), target); err != nil {
-		logger.Error.Println("unmarshal err: ", err)
+		log.Println("unmarshal err: ", err)
 		return err
 	}
 
@@ -220,7 +220,7 @@ func (c client) ListLicenses(target *[]models.License) error {
 	}
 
 	if err := json.Unmarshal(resp.Body(), target); err != nil {
-		logger.Error.Println("unmarshal err: ", err)
+		log.Println("unmarshal err: ", err)
 		return err
 	}
 
