@@ -24,20 +24,26 @@ func New(client *client.CupClient) *Core {
 	return &Core{client, e, l, w, d}
 }
 
-func (g *Core) Start() error {
-	go g.explorer.Start()
-	go g.licensePool.Start()
-	go g.wallet.Start()
+func (c *Core) Start() error {
+	go c.explorer.Start()
+	go c.licensePool.Start()
+	go c.wallet.Start()
 
+	if IsDebug {
+		go c.debug()
+	}
+
+	c.digger.Start()
+	return nil
+}
+
+func (c Core) debug() {
 	timer := time.Tick(time.Second * 30)
 	go func() {
 		for {
-			<- timer
-			g.digger.metrics.Print()
-			g.licensePool.metrics.Print()
+			<-timer
+			c.digger.metrics.Print()
+			c.licensePool.metrics.Print()
 		}
 	}()
-
-	g.digger.Start()
-	return nil
 }
