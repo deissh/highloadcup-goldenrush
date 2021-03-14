@@ -14,11 +14,11 @@ type Core struct {
 }
 
 func New(client *client.CupClient) *Core {
-	e := NewExplorer(client, 100)
-	l := NewLicensePool(client, 5)
-	w := NewWallet(client, 5)
+	e := NewExplorer(client, 50)
+	l := NewLicensePool(client, 10)
+	w := NewWallet(client, 10)
 
-	d := NewDigger(client, e, w, l, 20)
+	d := NewDigger(client, e, w, l, 100)
 
 	return &Core{client, e, l, w, d}
 }

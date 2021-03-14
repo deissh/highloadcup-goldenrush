@@ -75,5 +75,7 @@ func (d *Digger) dig(wg *sync.WaitGroup) {
 				break
 			}
 		}
+
+		d.explorer.ReleaseReport(report)
 	}
 }

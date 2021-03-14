@@ -2,7 +2,6 @@ package core
 
 import (
 	"github.com/deissh/highloadcup-goldenrush/client"
-	"github.com/deissh/highloadcup-goldenrush/logger"
 	"sync"
 )
 
@@ -52,7 +51,6 @@ func (w *Wallet) cashier(wg *sync.WaitGroup) {
 		if err != nil {
 			// try again
 			w.treasuresChan <- treasure
-			logger.Warn.Println(treasure, " not cashed")
 		}
 	}
 }

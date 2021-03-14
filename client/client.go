@@ -14,6 +14,9 @@ func New(cfg *TransportConfig) *CupClient {
 	cli := CupClient{}
 	cli.Service = newService(
 		&fasthttp.Client{
+			NoDefaultUserAgentHeader: true,
+			DisablePathNormalizing: false,
+			DisableHeaderNamesNormalizing: false,
 			MaxIdemponentCallAttempts: 3,
 			RetryIf:                   func(req *fasthttp.Request) bool { return true },
 		},
